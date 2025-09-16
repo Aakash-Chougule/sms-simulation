@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SMS Simulator — Responsive Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent1: #facc15;
+    --accent2: #f97316;
+    --accent3: #5eead4;
+    --bg1: #0f172a;
+    --bg2: #1e293b;
+    --text: #e5e7eb;
+    --card: rgba(255,255,255,0.07);
+    --log-border: rgba(255,255,255,0.05);
+  }
+  body.light {
+    --bg1: #f3f4f6;
+    --bg2: #ffffff;
+    --text: #111827;
+    --card: rgba(0,0,0,0.05);
+    --log-border: rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; transition: background 0.5s, color 0.5s; }
+  body {
+    margin:0; font-family: 'Poppins', sans-serif;
+    background: linear-gradient(-45deg, var(--bg1), var(--bg2), #0b132b, #1f1f3a);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  @keyframes gradientBG {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+  }
+
+  /* Navbar */
+  nav {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 20px; background: var(--card); backdrop-filter:blur(12px);
+    position: sticky; top:0; z-index:10;
+  }
+  nav h1 {
+    margin:0; font-size:20px; font-weight:700;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  #menuToggle { display:none; flex-direction:column; cursor:pointer; }
+  #menuToggle span {
+    height:3px; width:24px; margin:4px 0;
+    background: var(--text); border-radius:2px;
+  }
+  .nav-links { display:flex; gap:12px; }
+  .nav-links button {
+    border:none; padding:8px 14px; border-radius:10px; cursor:pointer;
+    font-weight:600; background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    color:#111;
+  }
+  @media(max-width:700px){
+    .nav-links { display:none; flex-direction:column; margin-top:8px; }
+    .nav-links.show { display:flex; }
+    #menuToggle { display:flex; }
+  }
+
+  /* Main container */
+  .container {
+    max-width: 1200px; width: 100%; flex:1;
+    margin:20px auto; padding:16px;
+  }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media(max-width:900px){ .grid{grid-template-columns:1fr;} }
+
+  .card {
+    background: var(--card); border-radius:16px;
+    padding:16px; box-shadow: inset 0 1px 12px rgba(0,0,0,0.05);
+  }
+
+  label { font-size: 13px; color:#94a3b8; display:block; margin:6px 0 4px; }
+  textarea,input {
+    width:100%; padding:10px; border-radius:12px;
+    border:none; outline:none; resize: vertical;
+    background: rgba(255,255,255,0.1); color:var(--text);
+    font-size:14px;
+  }
+  .btn {
+    padding:10px 18px; border-radius:12px;
+    font-weight:700; cursor:pointer; border:none;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    color:#111; margin:4px 4px 0 0;
+  }
+  .btn:hover { opacity:0.9; }
+
+  /* Stats */
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+  .stat { flex:1; min-width:100px; padding:10px; border-radius:12px; text-align:center; background:rgba(255,255,255,0.08); }
+  .stat .num { font-size:20px; font-weight:700; background:linear-gradient(90deg,var(--accent2),var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+  /* Log */
+  .log { max-height:300px; overflow:auto; font-size:14px; }
+  .log-item { display:flex; align-items:center; gap:8px; padding:6px; border-bottom:1px solid var(--log-border); }
+  .badge { padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+  .sent { background:rgba(34,197,94,0.2); color:#22c55e; }
+  .fail { background:rgba(239,68,68,0.2); color:#ef4444; }
+  .retry { background:rgba(245,158,11,0.2); color:#f59e0b; }
+
+  /* Table */
+  table { width:100%; border-collapse: collapse; margin-top:10px; }
+  th, td { padding:8px; text-align:left; border-bottom:1px solid var(--log-border); font-size:14px; }
+
+  /* Footer */
+  footer {
+    background: var(--card); padding:12px; text-align:center;
+    font-size:13px; color:#94a3b8;
+    position:sticky; bottom:0; width:100%;
+  }
+</style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <h1>SMS Simulator</h1>
+    <div id="menuToggle">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <button id="themeToggle">🌗 Toggle Theme</button>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <div class="container">
+    <div class="grid">
+      <!-- Left -->
+      <div class="card">
+        <label>Phone numbers (one per line)</label>
+        <textarea id="phones" rows="6"></textarea>
+        <label>Message</label>
+        <textarea id="message">This is a premium test message.</textarea>
+        <label>Concurrency</label>
+        <input id="concurrency" type="number" value="10" min="1" max="200">
+        <label>Max Retries</label>
+        <input id="maxRetries" type="number" value="3" min="0" max="10">
+
+        <div style="margin-top:12px;">
+          <button class="btn" id="startBtn">Start</button>
+          <button class="btn" id="stopBtn" disabled>Stop</button>
+          <button class="btn" id="clearLogBtn">Clear Log</button>
+          <button class="btn" id="resetBtn">Reset Stats</button>
+          <button class="btn" id="exportBtn">Export Log</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="num" id="statQueued">0</div><div>Queued</div></div>
+          <div class="stat"><div class="num" id="statSent">0</div><div>Sent</div></div>
+          <div class="stat"><div class="num" id="statFailed">0</div><div>Failed</div></div>
+        </div>
+      </div>
+
+      <!-- Right -->
+      <div class="card">
+        <h3>Live Log</h3>
+        <div id="log" class="log"></div>
+        
+        <h3 style="margin-top:16px;">Live Stats Table</h3>
+        <table id="statsTable">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Queued</th>
+              <th>Sent</th>
+              <th>Failed</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>© 2025 SMS Simulator — Demo only, no real SMS</footer>
+
+<script>
+const logEl=document.getElementById('log');
+const startBtn=document.getElementById('startBtn');
+const stopBtn=document.getElementById('stopBtn');
+const clearLogBtn=document.getElementById('clearLogBtn');
+const resetBtn=document.getElementById('resetBtn');
+const exportBtn=document.getElementById('exportBtn');
+const statQueued=document.getElementById('statQueued');
+const statSent=document.getElementById('statSent');
+const statFailed=document.getElementById('statFailed');
+const themeToggle=document.getElementById('themeToggle');
+const navLinks=document.getElementById('navLinks');
+const menuToggle=document.getElementById('menuToggle');
+const statsTableBody=document.querySelector("#statsTable tbody");
+
+let shouldStop=false,total=0,done=0;
+
+function appendLog(status,text){
+  const item=document.createElement('div');
+  item.className='log-item';
+  const badge=document.createElement('div');
+  badge.className='badge '+status;
+  badge.textContent=status.toUpperCase();
+  const msg=document.createElement('div');
+  msg.textContent=text;
+  item.appendChild(badge); item.appendChild(msg);
+  logEl.prepend(item);
+}
+
+function updateStatsTable(){
+  const row=document.createElement("tr");
+  const time=new Date().toLocaleTimeString();
+  row.innerHTML=`<td>${time}</td><td>${statQueued.textContent}</td><td>${statSent.textContent}</td><td>${statFailed.textContent}</td>`;
+  statsTableBody.prepend(row);
+}
+
+function fakeSend(num,msg){
+  return new Promise(res=>{
+    setTimeout(()=>{
+      const r=Math.random();
+      if(r<0.75) res({status:'sent'});
+      else if(r<0.9) res({status:'retry'});
+      else res({status:'fail'});
+    },200+Math.random()*400);
+  });
+}
+
+async function runSimulation(numbers,msg,concurrency,retries){
+  let queue=[...numbers];
+  total=queue.length; done=0;
+  statQueued.textContent=total; statSent.textContent=0; statFailed.textContent=0;
+  statsTableBody.innerHTML="";
+  shouldStop=false;
+  async function worker(){
+    while(queue.length && !shouldStop){
+      const num=queue.shift();
+      let attempt=0,success=false;
+      while(attempt<=retries && !success){
+        attempt++;
+        const res=await fakeSend(num,msg);
+        if(res.status==='sent'){appendLog('sent',num+" ✔");statSent.textContent=+statSent.textContent+1;updateStatsTable();success=true;}
+        else if(res.status==='retry'){appendLog('retry',num+" retry("+attempt+")");await new Promise(r=>setTimeout(r,300));}
+        else{appendLog('fail',num+" ❌");statFailed.textContent=+statFailed.textContent+1;updateStatsTable();break;}
+      }
+      done++;
+    }
+  }
+  const workers=[];for(let i=0;i<concurrency;i++)workers.push(worker());
+  await Promise.all(workers);appendLog('retry','Simulation finished');
+}
+
+// Buttons
+startBtn.onclick=()=>{
+  const nums=document.getElementById('phones').value.trim().split(/\n/).filter(Boolean);
+  if(!nums.length){alert("Enter phone numbers!");return;}
+  const msg=document.getElementById('message').value;
+  const conc=+document.getElementById('concurrency').value;
+  const retries=+document.getElementById('maxRetries').value;
+  startBtn.disabled=true; stopBtn.disabled=false;
+  runSimulation(nums,msg,conc,retries).then(()=>{startBtn.disabled=false; stopBtn.disabled=true;});
+};
+stopBtn.onclick=()=>{shouldStop=true; appendLog('fail','Stop requested');};
+clearLogBtn.onclick=()=>{logEl.innerHTML=""; statsTableBody.innerHTML="";};
+resetBtn.onclick=()=>{statQueued.textContent=0;statSent.textContent=0;statFailed.textContent=0;done=0;total=0;statsTableBody.innerHTML="";appendLog('retry','Stats reset');};
+exportBtn.onclick=()=>{
+  let logs=[...document.querySelectorAll(".log-item")].map(el=>el.textContent).join("\n");
+  const blob=new Blob([logs],{type:"text/plain"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="log.txt";a.click();
+};
+
+// Theme
+function applyTheme(saved){ if(saved==="light"){ document.body.classList.add("light"); } }
+applyTheme(localStorage.getItem("theme"));
+
+themeToggle.onclick=()=>{
+  document.body.classList.toggle("light");
+  localStorage.setItem("theme",document.body.classList.contains("light")?"light":"dark");
+};
+
+// Mobile menu
+menuToggle.onclick=()=>{navLinks.classList.toggle("show");};
+</script>
+</body>
+</html>
